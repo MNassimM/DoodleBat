@@ -11,6 +11,6 @@ class Obstacle {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+        this.bitmap = Bitmap.createScaledBitmap(bitmap, width+100, height+60, true);
     }
 }
