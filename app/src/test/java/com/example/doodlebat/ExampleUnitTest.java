@@ -1,4 +1,4 @@
-package com.example.minijeu;
+package com.example.doodlebat;
 
 import org.junit.Test;
 
