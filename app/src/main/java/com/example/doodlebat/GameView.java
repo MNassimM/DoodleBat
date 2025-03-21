@@ -59,6 +59,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private boolean isInvincible = false;
     private long invincibilityStartTime;
     private static final long INVINCIBILITY_DURATION = 2000;
+    private boolean isPaused = false;
+
 
 
 
@@ -164,7 +166,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
             }
 
-            if (!gameOver) {
+            if (!gameOver && !isPaused) {
                 backgroundX -= backgroundSpeed;
                 if (backgroundX <= -screenWidth) {
                     backgroundX = 0;
@@ -267,7 +269,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     public void update() {
 
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         frameCounter++;
         if (frameCounter >= FRAME_DELAY) {
             currentFrameIndex = (currentFrameIndex + 1) % 2;
@@ -417,5 +419,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         batY = screenHeight/2f;
         lives = 3;
         isInvincible = false;
+    }
+
+    public void pauseGame() {
+        isPaused = true;
+    }
+
+    public void resumeGame() {
+        isPaused = false;
     }
 }

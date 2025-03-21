@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -22,11 +23,10 @@ import java.util.Set;
 public class GameActivity extends Activity {
     private GameView gameView;
     private RelativeLayout gameOverLayout;
+    private RelativeLayout pauseMenuLayout; // Le layout de pause
     private TextView scoreText;
-
     private int tempScore;
     private String tempPseudo;
-
     private Button saveScoreButton;
 
     @Override
@@ -36,27 +36,23 @@ public class GameActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        // Utilisez un FrameLayout pour superposer les éléments
         FrameLayout rootLayout = new FrameLayout(this);
         gameView = new GameView(this);
         rootLayout.addView(gameView);
 
-        // Ajoutez le layout de Game Over
         View gameOverView = getLayoutInflater().inflate(R.layout.game_over, rootLayout, false);
         rootLayout.addView(gameOverView);
-
-        setContentView(rootLayout);
-
         gameOverLayout = gameOverView.findViewById(R.id.gameOverLayout);
         scoreText = gameOverView.findViewById(R.id.scoreText);
         Button restartButton = gameOverView.findViewById(R.id.restartButton);
         Button mainMenuButton = gameOverView.findViewById(R.id.mainMenuButton);
+        saveScoreButton = gameOverView.findViewById(R.id.saveScoreButton);
 
         // Listener pour redémarrer
         restartButton.setOnClickListener(v -> {
             gameView.resetGame();
             gameOverLayout.setVisibility(View.GONE);
-            saveScoreButton.setEnabled(true); // Réactive le bouton
+            saveScoreButton.setEnabled(true);
         });
 
         // Listener pour le menu principal
@@ -65,15 +61,13 @@ public class GameActivity extends Activity {
             startActivity(new Intent(this, MainActivity.class));
         });
 
-
         // Définir le listener de fin de jeu
         gameView.setGameOverListener(finalScore -> runOnUiThread(() -> {
             gameOverLayout.setVisibility(View.VISIBLE);
             scoreText.setText("Score: " + finalScore);
-            tempScore=finalScore;
+            tempScore = finalScore;
         }));
 
-        saveScoreButton = gameOverView.findViewById(R.id.saveScoreButton);
         saveScoreButton.setOnClickListener(v -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
             builder.setTitle("Enregistrer le score");
@@ -81,13 +75,11 @@ public class GameActivity extends Activity {
             input.setInputType(InputType.TYPE_CLASS_TEXT);
             input.setHint("Entrez votre pseudo");
             builder.setView(input);
-
-            // Dans le dialog
             builder.setPositiveButton("OK", (dialog, which) -> {
                 tempPseudo = input.getText().toString().trim();
-                if(tempPseudo.isEmpty()) {
+                if (tempPseudo.isEmpty()) {
                     Toast.makeText(GameActivity.this, "Le pseudo ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                } else if(tempPseudo.length() > 12) {
+                } else if (tempPseudo.length() > 12) {
                     Toast.makeText(GameActivity.this, "Max 12 caractères", Toast.LENGTH_SHORT).show();
                 } else {
                     saveScore(tempPseudo, tempScore);
@@ -95,24 +87,55 @@ public class GameActivity extends Activity {
             });
             builder.setNegativeButton("Annuler", null);
             builder.show();
-
         });
+
+        pauseMenuLayout = (RelativeLayout) getLayoutInflater().inflate(R.layout.pause_menu, rootLayout, false);
+        rootLayout.addView(pauseMenuLayout);
+
+        Button pauseButton = new Button(this);
+        pauseButton.setText("Pause");
+        FrameLayout.LayoutParams pauseButtonParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        pauseButtonParams.leftMargin = 20;
+        pauseButtonParams.topMargin = 20;
+        pauseButton.setLayoutParams(pauseButtonParams);
+        rootLayout.addView(pauseButton);
+
+        pauseButton.setOnClickListener(v -> {
+            gameView.pauseGame();
+            pauseMenuLayout.setVisibility(View.VISIBLE);
+        });
+
+        Button resumeButton = pauseMenuLayout.findViewById(R.id.resumeButton);
+        Button quitButton = pauseMenuLayout.findViewById(R.id.quitButton);
+
+        resumeButton.setOnClickListener(v -> {
+            pauseMenuLayout.setVisibility(View.GONE);
+            gameView.resumeGame();
+        });
+
+        quitButton.setOnClickListener(v -> {
+            finish();
+            startActivity(new Intent(this, MainActivity.class));
+        });
+
+        setContentView(rootLayout);
     }
+
     private void saveScore(String pseudo, int score) {
         SharedPreferences prefs = getSharedPreferences("Scores", MODE_PRIVATE);
         Set<String> scores = new HashSet<>(prefs.getStringSet("scores", new HashSet<>()));
         scores.add(pseudo + ":" + score);
         prefs.edit().putStringSet("scores", scores).apply();
-
-        // Désactiver le bouton après l'enregistrement
         saveScoreButton.setEnabled(false);
     }
 
-    // Ajoutez cette méthode pour réinitialiser l'état du bouton
     @Override
     protected void onResume() {
         super.onResume();
-        if(saveScoreButton != null) {
+        if (saveScoreButton != null) {
             saveScoreButton.setEnabled(true);
         }
     }
