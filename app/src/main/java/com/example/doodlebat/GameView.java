@@ -44,14 +44,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private Bitmap background, scaledBackground;
     private float backgroundX = 0;
     private int backgroundSpeed = 5;
-    private int score = 0;
     private long lastScoreUpdateTime = System.currentTimeMillis();
-
-
     private boolean gameOver = false;
     private GameOverListener gameOverListener;
-
     private int score=0;
+    private ArrayList<Coin> coins;
+    private long lastCoinSpawnTime = System.currentTimeMillis();
+    private Bitmap coinImage;
+
 
     public interface GameOverListener {
         void onGameOver(int finalscore);
@@ -74,6 +74,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         batFrames[1] = Bitmap.createScaledBitmap(original2, desiredWidth, desiredHeight, true);
 
         background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
+        coinImage = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
 
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -89,6 +90,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
         obstacles = new ArrayList<>();
         random = new Random();
+
+        coins = new ArrayList<>();
+        coinImage = Bitmap.createScaledBitmap(coinImage, 80, 80, true);
+
     }
 
     @Override
@@ -129,7 +134,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             scorePaint.setTextSize(50);
             canvas.drawText("Score: " + score, 20, 50, scorePaint);
             if (gameOver) {
-                // Dessinez un calque semi-transparent
                 Paint overlayPaint = new Paint();
                 overlayPaint.setColor(Color.argb(150, 0, 0, 0));
                 canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
@@ -184,6 +188,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
             canvas.drawText(scoreText, xPosition, yPosition, paint);
 
+            for (Coin coin : coins) {
+                canvas.drawBitmap(coinImage, coin.x - coin.radius, coin.y - coin.radius, null);
+            }
         }
     }
 
@@ -209,6 +216,32 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 Math.hypot(obstacle.x - batX, obstacle.y + obstacle.height - batY) <= sonarRadius ||
                 Math.hypot(obstacle.x + obstacle.width - batX, obstacle.y + obstacle.height - batY) <= sonarRadius;
     }
+
+    private void spawnCoins() {
+        long currentTime = System.currentTimeMillis();
+
+        if (currentTime - lastCoinSpawnTime >= 5000) {
+            float coinX = screenWidth - 150;
+            float coinY = random.nextInt(screenHeight - 100) + 50;
+
+            boolean isOverlapping = false;
+            for (Obstacle obstacle : obstacles) {
+                if (coinX + 50 > obstacle.x && coinX < obstacle.x + obstacle.width &&
+                        coinY + 50 > obstacle.y && coinY < obstacle.y + obstacle.height) {
+                    isOverlapping = true;
+                    break;
+                }
+            }
+
+            if (!isOverlapping) {
+                coins.add(new Coin(coinX, coinY, 30));
+            }
+
+            lastCoinSpawnTime = currentTime;
+        }
+    }
+
+
 
     public void update() {
 
@@ -262,6 +295,24 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         if (sonarRadius2 > screenWidth/2) {
             sonarRadius2 = 0;
         }
+
+        spawnCoins();
+
+        Iterator<Coin> coinIterator = coins.iterator();
+        while (coinIterator.hasNext()) {
+            Coin coin = coinIterator.next();
+            coin.x -= 5;
+
+            if (coin.x + coin.radius < 0) {
+                coinIterator.remove();
+            }
+
+            if (Math.hypot(coin.x - batX, coin.y - batY) <= coin.radius + 50) {
+                score += 10;
+                coinIterator.remove();
+            }
+        }
+
     }
 
     @Override
