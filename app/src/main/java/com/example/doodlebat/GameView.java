@@ -1,6 +1,8 @@
 package com.example.doodlebat;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -26,10 +28,24 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private ArrayList<Obstacle> obstacles;
     private Random random;
 
+    private int desiredWidth = 200; // TARGET : Ajustez ces valeurs
+    private int desiredHeight = 200;
+
+    private Bitmap[] batFrames = new Bitmap[2];
+    private int currentFrameIndex = 0;
+    private int frameCounter = 0;
+    private static final int FRAME_DELAY = 10; // Ajustez pour la vitesse
+
     public GameView(Context context) {
         super(context);
         getHolder().addCallback(this);
         setFocusable(true);
+
+        Bitmap original1 = BitmapFactory.decodeResource(getResources(), R.drawable.bat_frame_1);
+        Bitmap original2 = BitmapFactory.decodeResource(getResources(), R.drawable.bat_frame_2);
+
+        batFrames[0] = Bitmap.createScaledBitmap(original1, desiredWidth, desiredHeight, true);
+        batFrames[1] = Bitmap.createScaledBitmap(original2, desiredWidth, desiredHeight, true);
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -77,8 +93,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         if (canvas != null) {
             canvas.drawColor(isDark ? Color.BLACK : Color.WHITE);
             Paint paint = new Paint();
-            paint.setColor(Color.GRAY);
-            canvas.drawCircle(batX, batY, 50, paint);
+            //Dessiner la bat
+            Bitmap currentBitmap = batFrames[currentFrameIndex];
+            if (currentBitmap != null) {
+                canvas.drawBitmap(
+                        currentBitmap,
+                        batX - (float) currentBitmap.getWidth() / 2,
+                        batY - (float) currentBitmap.getHeight() / 2,
+                        null
+                );
+            }
 
             // Dessiner les obstacles
             paint.setColor(Color.RED);
@@ -89,6 +113,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     }
 
     public void update() {
+        // Gère l'animation
+        frameCounter++;
+        if (frameCounter >= FRAME_DELAY) {
+            currentFrameIndex = (currentFrameIndex + 1) % 2;
+            frameCounter = 0;
+        }
         // Générer des obstacles aléatoires
         if (random.nextInt(100) < 5) {
             int height = random.nextInt(200) + 100;
