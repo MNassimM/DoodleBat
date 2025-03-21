@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -103,11 +105,20 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
-           // canvas.drawColor(isDark ? Color.BLACK : Color.WHITE);
-            canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
-            canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+            if (isDark) {
+                Paint darkPaint = new Paint();
+                ColorMatrix colorMatrix = new ColorMatrix();
+                colorMatrix.setScale(0.5f, 0.5f, 0.5f, 1.0f); // Reduce brightness by 50%
+                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+                darkPaint.setColorFilter(filter);
+                canvas.drawBitmap(scaledBackground, backgroundX, 0, darkPaint);
+                canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, darkPaint);
+            } else {
+                canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
+                canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+            }
 
-// Défilement
+            // Défilement
             backgroundX -= backgroundSpeed;
             if (backgroundX <= -screenWidth) {
                 backgroundX = 0; // Répète le cycle
