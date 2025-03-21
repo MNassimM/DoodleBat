@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.hardware.Sensor;
@@ -33,18 +34,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private float sonarRadius2 = 200;
     private long lastUpdateTime = System.currentTimeMillis();
 
-    private int desiredWidth = 130; // TARGET : Ajustez ces valeurs
+    private int desiredWidth = 130;
     private int desiredHeight = 130;
 
     private Bitmap[] batFrames = new Bitmap[2];
     private int currentFrameIndex = 0;
     private int frameCounter = 0;
-    private static final int FRAME_DELAY = 10; // Ajustez pour la vitesse
+    private static final int FRAME_DELAY = 10;
     private Bitmap background, scaledBackground;
-    private float backgroundX = 0; // Position X pour le défilement
-    private int backgroundSpeed = 5; // Vitesse de défilement
+    private float backgroundX = 0;
+    private int backgroundSpeed = 5;
+    private int score = 0;
+    private long lastScoreUpdateTime = System.currentTimeMillis();
 
-    private Paint paint = new Paint();
 
     private boolean gameOver = false;
     private GameOverListener gameOverListener;
@@ -119,6 +121,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
+            canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
+            canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+
             Paint scorePaint = new Paint();
             scorePaint.setColor(Color.WHITE);
             scorePaint.setTextSize(50);
@@ -142,13 +147,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
             }
 
-            // Défilement
             backgroundX -= backgroundSpeed;
             if (backgroundX <= -screenWidth) {
-                backgroundX = 0; // Répète le cycle
+                backgroundX = 0;
             }
             Paint paint = new Paint();
-            //Dessiner la bat
+
             Bitmap currentBitmap = batFrames[currentFrameIndex];
             if (currentBitmap != null) {
                 canvas.drawBitmap(
@@ -167,6 +171,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                     canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
                 }
             }
+
+            paint.setColor(Color.WHITE);
+
+            paint.setTextSize(100);
+            paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+            String scoreText = "Score: " + score;
+            float textWidth = paint.measureText(scoreText);
+            float xPosition = (screenWidth - textWidth) / 2;
+            float yPosition = 150;
+
+            canvas.drawText(scoreText, xPosition, yPosition, paint);
+
         }
     }
 
@@ -194,25 +211,30 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     }
 
     public void update() {
+
         if (gameOver) return;
-        // Gère l'animation
         frameCounter++;
         if (frameCounter >= FRAME_DELAY) {
             currentFrameIndex = (currentFrameIndex + 1) % 2;
             frameCounter = 0;
         }
-        // Générer des obstacles aléatoires
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastScoreUpdateTime >= 2000) {
+            score++;
+            lastScoreUpdateTime = currentTime;
+        }
+
         if (random.nextInt(100) < 5) {
             int height = random.nextInt(500) + 200;
             int y = random.nextBoolean() ? 0 : (screenHeight - height);
-            int minDistance = 200; // Minimum distance between obstacles
+            int minDistance = 200;
 
             if (obstacles.isEmpty() || (screenWidth - obstacles.get(obstacles.size() - 1).x) > minDistance) {
                 obstacles.add(new Obstacle(screenWidth, y, 50, height));
             }
         }
 
-        // Déplacer les obstacles et vérifier collision
         Iterator<Obstacle> iterator = obstacles.iterator();
         while (iterator.hasNext()) {
             Obstacle obstacle = iterator.next();
@@ -228,7 +250,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 if (gameOverListener != null) gameOverListener.onGameOver(score);
             }
         }
-        long currentTime = System.currentTimeMillis();
         if (currentTime - lastUpdateTime > 50) {
             sonarRadius1 += 10;
             sonarRadius2 += 10;
