@@ -1,11 +1,9 @@
 package com.example.doodlebat;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -23,9 +21,9 @@ public class GameActivity extends Activity {
     private GameView gameView;
     private RelativeLayout gameOverLayout;
     private TextView scoreText;
+    private EditText pseudoInput;
 
     private int tempScore;
-    private String tempPseudo;
 
     private Button saveScoreButton;
 
@@ -49,6 +47,7 @@ public class GameActivity extends Activity {
 
         gameOverLayout = gameOverView.findViewById(R.id.gameOverLayout);
         scoreText = gameOverView.findViewById(R.id.scoreText);
+        pseudoInput = gameOverView.findViewById(R.id.pseudoInput);
         Button restartButton = gameOverView.findViewById(R.id.restartButton);
         Button mainMenuButton = gameOverView.findViewById(R.id.mainMenuButton);
 
@@ -65,39 +64,26 @@ public class GameActivity extends Activity {
             startActivity(new Intent(this, MainActivity.class));
         });
 
-
         // Définir le listener de fin de jeu
         gameView.setGameOverListener(finalScore -> runOnUiThread(() -> {
             gameOverLayout.setVisibility(View.VISIBLE);
             scoreText.setText("Score: " + finalScore);
-            tempScore=finalScore;
+            tempScore = finalScore;
         }));
 
         saveScoreButton = gameOverView.findViewById(R.id.saveScoreButton);
         saveScoreButton.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
-            builder.setTitle("Enregistrer le score");
-            final EditText input = new EditText(GameActivity.this);
-            input.setInputType(InputType.TYPE_CLASS_TEXT);
-            input.setHint("Entrez votre pseudo");
-            builder.setView(input);
-
-            // Dans le dialog
-            builder.setPositiveButton("OK", (dialog, which) -> {
-                tempPseudo = input.getText().toString().trim();
-                if(tempPseudo.isEmpty()) {
-                    Toast.makeText(GameActivity.this, "Le pseudo ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                } else if(tempPseudo.length() > 12) {
-                    Toast.makeText(GameActivity.this, "Max 12 caractères", Toast.LENGTH_SHORT).show();
-                } else {
-                    saveScore(tempPseudo, tempScore);
-                }
-            });
-            builder.setNegativeButton("Annuler", null);
-            builder.show();
-
+            String tempPseudo = pseudoInput.getText().toString().trim();
+            if (tempPseudo.isEmpty()) {
+                Toast.makeText(GameActivity.this, "Le pseudo ne peut pas être vide", Toast.LENGTH_SHORT).show();
+            } else if (tempPseudo.length() > 12) {
+                Toast.makeText(GameActivity.this, "Max 12 caractères", Toast.LENGTH_SHORT).show();
+            } else {
+                saveScore(tempPseudo, tempScore);
+            }
         });
     }
+
     private void saveScore(String pseudo, int score) {
         SharedPreferences prefs = getSharedPreferences("Scores", MODE_PRIVATE);
         Set<String> scores = new HashSet<>(prefs.getStringSet("scores", new HashSet<>()));
@@ -106,13 +92,15 @@ public class GameActivity extends Activity {
 
         // Désactiver le bouton après l'enregistrement
         saveScoreButton.setEnabled(false);
+        saveScoreButton.setVisibility(View.GONE);
+        pseudoInput.setVisibility(View.GONE);
     }
 
     // Ajoutez cette méthode pour réinitialiser l'état du bouton
     @Override
     protected void onResume() {
         super.onResume();
-        if(saveScoreButton != null) {
+        if (saveScoreButton != null) {
             saveScoreButton.setEnabled(true);
         }
     }

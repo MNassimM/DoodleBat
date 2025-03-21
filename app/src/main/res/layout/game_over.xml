@@ -32,6 +32,16 @@
             android:layout_marginTop="10dp"
             android:textColor="#FFFFFF"/>
 
+        <EditText
+            android:id="@+id/pseudoInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Entrez votre pseudo"
+            android:inputType="text"
+            android:layout_marginTop="20dp"
+            android:padding="10dp"
+            android:textColor="#FFFFFF"/>
+
         <Button
             android:id="@+id/saveScoreButton"
             android:layout_width="match_parent"
@@ -39,7 +49,7 @@
             android:text="@string/enregistrer_score"
             android:layout_marginTop="20dp"
             android:padding="10dp"
-            android:background="@drawable/button_green_background"
+            android:background="@drawable/button_save_score_background"
             android:textColor="#FFFFFF"/>
 
         <LinearLayout
@@ -77,6 +87,6 @@
         android:layout_height="wrap_content"
         android:src="@drawable/bat_icon"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"/>
+        android:layout_marginTop="170dp"/>
 
 </RelativeLayout>
