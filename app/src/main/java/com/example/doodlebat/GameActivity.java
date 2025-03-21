@@ -2,6 +2,7 @@ package com.example.doodlebat;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -11,10 +12,17 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class GameActivity extends Activity {
     private GameView gameView;
     private RelativeLayout gameOverLayout;
     private TextView scoreText;
+
+    private int tempScore;
+
+    private Button saveScoreButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +51,7 @@ public class GameActivity extends Activity {
         restartButton.setOnClickListener(v -> {
             gameView.resetGame();
             gameOverLayout.setVisibility(View.GONE);
+            saveScoreButton.setEnabled(true); // Réactive le bouton
         });
 
         // Listener pour le menu principal
@@ -56,5 +65,16 @@ public class GameActivity extends Activity {
         gameView.setGameOverListener(finalScore -> runOnUiThread(() -> {
             gameOverLayout.setVisibility(View.VISIBLE);
             scoreText.setText("Score: " + finalScore);
-        }));    }
+            tempScore=finalScore;
+        }));
+
+        saveScoreButton = gameOverView.findViewById(R.id.saveScoreButton);
+        saveScoreButton.setOnClickListener(v -> {
+            SharedPreferences prefs = getSharedPreferences("Scores", MODE_PRIVATE);
+            Set<String> scores = new HashSet<>(prefs.getStringSet("scores", new HashSet<>()));
+            scores.add(String.valueOf(tempScore));
+            prefs.edit().putStringSet("scores", scores).apply();
+            saveScoreButton.setEnabled(false);
+        });
+    }
 }
