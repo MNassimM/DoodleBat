@@ -47,10 +47,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     private Obstacle lastObstacle1 = null;
     private Obstacle lastObstacle2 = null;
-    private static final int FRAME_DELAY = 10;
-    private Bitmap background, scaledBackground;
-    private float backgroundX = 0;
-    private int backgroundSpeed = 5;
     private long lastScoreUpdateTime = System.currentTimeMillis();
     private boolean gameOver = false;
     private GameOverListener gameOverListener;
