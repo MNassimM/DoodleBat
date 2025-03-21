@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.minijeu"
+    namespace = "com.example.doodlebat"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.minijeu"
+        applicationId = "com.example.doodlebat"
         minSdk = 27
         targetSdk = 35
         versionCode = 1
