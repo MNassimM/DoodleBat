@@ -3,6 +3,7 @@ package com.example.doodlebat;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -26,6 +27,9 @@ public class GameActivity extends Activity {
     private EditText pseudoInput;
     private int tempScore;
     private Button saveScoreButton;
+
+    private MediaPlayer gameMusic;
+    private MediaPlayer gameOverMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +55,10 @@ public class GameActivity extends Activity {
         restartButton.setOnClickListener(v -> {
             gameView.resetGame();
             gameOverLayout.setVisibility(View.GONE);
-            saveScoreButton.setEnabled(true);
+            saveScoreButton.setEnabled(true); // Réactive le bouton
+
+            stopGameOverMusic();
+            startGameMusic();
         });
 
         // Listener pour le menu principal
@@ -60,11 +67,20 @@ public class GameActivity extends Activity {
             startActivity(new Intent(this, MainActivity.class));
         });
 
+        gameMusic = MediaPlayer.create(this, R.raw.new_chap);
+        gameMusic.setLooping(true);
+        gameMusic.start();
+
         // Définir le listener de fin de jeu
         gameView.setGameOverListener(finalScore -> runOnUiThread(() -> {
             gameOverLayout.setVisibility(View.VISIBLE);
             scoreText.setText("Score: " + finalScore);
-            tempScore = finalScore;
+            tempScore=finalScore;
+            stopGameMusic();
+            gameOverMusic = MediaPlayer.create(this, R.raw.toothpaste);
+            gameOverMusic.setLooping(true);
+            gameOverMusic.start();
+
         }));
 
         saveScoreButton = gameOverView.findViewById(R.id.saveScoreButton);
@@ -114,6 +130,30 @@ public class GameActivity extends Activity {
         setContentView(rootLayout);
     }
 
+    private void stopGameMusic() {
+        if (gameMusic != null) {
+            gameMusic.stop();
+            gameMusic.release();
+            gameMusic = null;
+        }
+    }
+
+    private void stopGameOverMusic() {
+        if (gameOverMusic != null) {
+            gameOverMusic.stop();
+            gameOverMusic.release();
+            gameOverMusic = null;
+        }
+    }
+
+    private void startGameMusic() {
+        stopGameMusic(); // Arrête et nettoie toute instance existante
+        gameMusic = MediaPlayer.create(this, R.raw.new_chap);
+        gameMusic.setLooping(true);
+        gameMusic.start();
+    }
+
+
     private void saveScore(String pseudo, int score) {
         SharedPreferences prefs = getSharedPreferences("Scores", MODE_PRIVATE);
         Set<String> scores = new HashSet<>(prefs.getStringSet("scores", new HashSet<>()));
@@ -125,10 +165,29 @@ public class GameActivity extends Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopGameMusic();
+        stopGameOverMusic();
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(gameMusic != null && gameMusic.isPlaying()) {
+            gameMusic.pause();
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (saveScoreButton != null) {
             saveScoreButton.setEnabled(true);
+        }
+        if(gameMusic != null && !gameMusic.isPlaying()) {
+            gameMusic.start();
         }
     }
 }
