@@ -47,10 +47,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     private Obstacle lastObstacle1 = null;
     private Obstacle lastObstacle2 = null;
+    private int score = 0;
     private long lastScoreUpdateTime = System.currentTimeMillis();
     private boolean gameOver = false;
     private GameOverListener gameOverListener;
-    private int score=0;
     private ArrayList<Coin> coins;
     private long lastCoinSpawnTime = System.currentTimeMillis();
     private Bitmap coinImage;

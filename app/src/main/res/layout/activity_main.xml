@@ -4,21 +4,73 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#000000">
+    android:background="#A29494">
 
-    <Button
-        android:id="@+id/startGameButton"
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Game"
-        android:textSize="24sp"
-        android:padding="16dp"
-        android:background="@android:color/holo_blue_light"/>
+        android:src="@drawable/title"
+        android:layout_marginBottom="10dp"/>
 
-    <Button
-        android:id="@+id/viewScoresButton"
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/startGameButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Game"
+            android:textSize="24sp"
+            android:padding="16dp"
+            android:background="@android:color/holo_blue_light"/>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/bat_icon"
+            android:layout_alignTop="@id/startGameButton"
+            android:layout_alignStart="@id/startGameButton"
+            android:layout_marginTop="-12dp"
+            android:layout_marginStart="-12dp"/>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/bat_icon"
+            android:layout_alignTop="@id/startGameButton"
+            android:layout_alignEnd="@id/startGameButton"
+            android:layout_marginTop="-12dp"
+            android:layout_marginEnd="-12dp"/>
+    </RelativeLayout>
+
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/tableau_des_scores"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/bat_icon"
+            android:layout_alignTop="@id/viewScoresButton"
+            android:layout_alignStart="@id/viewScoresButton"
+            android:layout_marginTop="-12dp"
+            android:layout_marginStart="-12dp"/>
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/bat_icon"
+            android:layout_alignTop="@id/viewScoresButton"
+            android:layout_alignEnd="@id/viewScoresButton"
+            android:layout_marginTop="-12dp"
+            android:layout_marginEnd="-12dp"/>
+
+        <Button
+            android:id="@+id/viewScoresButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tableau_des_scores"/>
+    </RelativeLayout>
 </LinearLayout>
