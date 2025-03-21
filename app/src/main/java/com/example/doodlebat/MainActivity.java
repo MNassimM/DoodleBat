@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
         if(menuMusic != null && !menuMusic.isPlaying()) {
             menuMusic.start();
         }
+
     }
     @Override
     protected void onDestroy() {

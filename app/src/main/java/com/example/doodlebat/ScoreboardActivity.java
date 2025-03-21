@@ -2,6 +2,7 @@ package com.example.doodlebat;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,11 +19,17 @@ import java.util.Set;
 
 public class ScoreboardActivity extends Activity {
     private ArrayList<ScoreEntry> scoreEntries = new ArrayList<>();
+    private MediaPlayer scoreboardMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scoreboard);
+
+        scoreboardMusic = MediaPlayer.create(this, R.raw.revenge);
+        scoreboardMusic.setLooping(true);
+        scoreboardMusic.start();
+
 
         ListView scoreListView = findViewById(R.id.scoreListView);
         Button backButton = findViewById(R.id.backButton);
@@ -79,6 +86,32 @@ public class ScoreboardActivity extends Activity {
         ScoreEntry(String pseudo, int score) {
             this.pseudo = pseudo;
             this.score = score;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(scoreboardMusic != null && scoreboardMusic.isPlaying()) {
+            scoreboardMusic.pause();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(scoreboardMusic != null && !scoreboardMusic.isPlaying()) {
+            scoreboardMusic.start();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(scoreboardMusic != null) {
+            scoreboardMusic.stop();
+            scoreboardMusic.release();
+            scoreboardMusic = null;
         }
     }
 }

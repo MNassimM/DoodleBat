@@ -13,6 +13,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -60,10 +62,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private long invincibilityStartTime;
     private static final long INVINCIBILITY_DURATION = 2000;
     private boolean isPaused = false;
-
-
-
-
+    private SoundPool soundPool;
+    private int coinSoundId;
+    private int loseLifeSoundId;
     public interface GameOverListener {
         void onGameOver(int finalscore);
     }
@@ -115,6 +116,18 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         coins = new ArrayList<>();
         coinImage = Bitmap.createScaledBitmap(coinImage, 80, 80, true);
 
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(2)
+                .setAudioAttributes(audioAttributes)
+                .build();
+
+        coinSoundId = soundPool.load(context, R.raw.coinsound, 1);
+        loseLifeSoundId = soundPool.load(context, R.raw.hurtsound, 1);
     }
 
     @Override
@@ -141,6 +154,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 retry = false;
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+            if (soundPool != null) {
+                soundPool.release();
+                soundPool = null;
             }
         }
     }
@@ -311,7 +328,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             if (batX + desiredWidth/2 > obstacle.x && batX - desiredWidth/2 < obstacle.x + obstacle.width &&
                     batY + desiredHeight/2 > obstacle.y && batY - desiredHeight/2 < obstacle.y + obstacle.height && !isInvincible) {
                 lives--;
-                //add live sound here
                 if (lives <= 0) {
                     gameOver = true;
                     if (gameOverListener != null) gameOverListener.onGameOver(score);
@@ -319,6 +335,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                     isInvincible = true;
                     invincibilityStartTime = System.currentTimeMillis();
                 }
+                soundPool.play(loseLifeSoundId, 1.0f, 1.0f, 1, 0, 1.0f);
             }
         }
 
@@ -355,8 +372,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             if (Math.hypot(coin.x - batX, coin.y - batY) <= coin.radius + 50) {
                 score += 10;
                 coinIterator.remove();
-                // add coin music here
-            }
+                soundPool.play(coinSoundId, 1.0f, 1.0f, 1, 0, 1.0f);            }
         }
 
     }
