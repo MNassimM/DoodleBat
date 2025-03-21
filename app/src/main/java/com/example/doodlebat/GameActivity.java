@@ -1,12 +1,10 @@
 package com.example.doodlebat;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,6 +23,7 @@ public class GameActivity extends Activity {
     private RelativeLayout gameOverLayout;
     private RelativeLayout pauseMenuLayout; // Le layout de pause
     private TextView scoreText;
+    private EditText pseudoInput;
     private int tempScore;
     private String tempPseudo;
     private Button saveScoreButton;
@@ -44,6 +43,7 @@ public class GameActivity extends Activity {
         rootLayout.addView(gameOverView);
         gameOverLayout = gameOverView.findViewById(R.id.gameOverLayout);
         scoreText = gameOverView.findViewById(R.id.scoreText);
+        pseudoInput = gameOverView.findViewById(R.id.pseudoInput);
         Button restartButton = gameOverView.findViewById(R.id.restartButton);
         Button mainMenuButton = gameOverView.findViewById(R.id.mainMenuButton);
         saveScoreButton = gameOverView.findViewById(R.id.saveScoreButton);
@@ -69,6 +69,14 @@ public class GameActivity extends Activity {
         }));
 
         saveScoreButton.setOnClickListener(v -> {
+            String tempPseudo = pseudoInput.getText().toString().trim();
+            if (tempPseudo.isEmpty()) {
+                Toast.makeText(GameActivity.this, "Le pseudo ne peut pas être vide", Toast.LENGTH_SHORT).show();
+            } else if (tempPseudo.length() > 12) {
+                Toast.makeText(GameActivity.this, "Max 12 caractères", Toast.LENGTH_SHORT).show();
+            } else {
+                saveScore(tempPseudo, tempScore);
+            }
             AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity.this);
             builder.setTitle("Enregistrer le score");
             final EditText input = new EditText(GameActivity.this);
@@ -130,6 +138,8 @@ public class GameActivity extends Activity {
         scores.add(pseudo + ":" + score);
         prefs.edit().putStringSet("scores", scores).apply();
         saveScoreButton.setEnabled(false);
+        saveScoreButton.setVisibility(View.GONE);
+        pseudoInput.setVisibility(View.GONE);
     }
 
     @Override
