@@ -1,5 +1,4 @@
 package com.example.minijeu;
-
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
 
