@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/rounded_dark_gray_background"
+    android:layout_marginBottom="8dp">
 
     <TextView
         android:id="@+id/pseudoText"
@@ -11,7 +13,7 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:textSize="18sp"
-        android:textColor="#000"/>
+        android:textColor="#FFFFFF"/>
 
     <TextView
         android:id="@+id/scoreText"
@@ -20,6 +22,5 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textAlignment="textEnd"
-        android:textColor="#F00"/>
-
+        android:textColor="#FFFFFF"/>
 </LinearLayout>
