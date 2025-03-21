@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.hardware.Sensor;
@@ -33,7 +34,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private float sonarRadius2 = 200;
     private long lastUpdateTime = System.currentTimeMillis();
 
-    private int desiredWidth = 130; // TARGET : Ajustez ces valeurs
+    private int desiredWidth = 130;
     private int desiredHeight = 130;
 
     private Bitmap[] batFrames = new Bitmap[2];
@@ -46,6 +47,27 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     private Obstacle lastObstacle1 = null;
     private Obstacle lastObstacle2 = null;
+    private static final int FRAME_DELAY = 10;
+    private Bitmap background, scaledBackground;
+    private float backgroundX = 0;
+    private int backgroundSpeed = 5;
+    private int score = 0;
+    private long lastScoreUpdateTime = System.currentTimeMillis();
+
+
+    private boolean gameOver = false;
+    private GameOverListener gameOverListener;
+
+    private int score=0;
+
+    public interface GameOverListener {
+        void onGameOver(int finalscore);
+    }
+
+    public void setGameOverListener(GameOverListener listener) {
+        this.gameOverListener = listener;
+    }
+
 
     public GameView(Context context) {
         super(context);
@@ -108,6 +130,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
+            canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
+            canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+
+            Paint scorePaint = new Paint();
+            scorePaint.setColor(Color.WHITE);
+            scorePaint.setTextSize(50);
+            canvas.drawText("Score: " + score, 20, 50, scorePaint);
+            if (gameOver) {
+                // Dessinez un calque semi-transparent
+                Paint overlayPaint = new Paint();
+                overlayPaint.setColor(Color.argb(150, 0, 0, 0));
+                canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
+            }
             if (isDark) {
                 canvas.drawBitmap(darkBackground, backgroundX, 0, null);
                 canvas.drawBitmap(darkBackground, backgroundX + screenWidth, 0, null);
@@ -116,14 +151,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
             }
 
-            // Scrolling background
             backgroundX -= backgroundSpeed;
             if (backgroundX <= -screenWidth) {
-                backgroundX = 0; // Repeat the cycle
+                backgroundX = 0;
             }
 
             Paint paint = new Paint();
-            // Draw the bat
             Bitmap currentBitmap = batFrames[currentFrameIndex];
             if (currentBitmap != null) {
                 canvas.drawBitmap(
@@ -137,6 +170,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             if (isDark) {
                 drawSonarWaves(canvas, paint);
             }
+
+            paint.setColor(Color.WHITE);
+
+            paint.setTextSize(100);
+            paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+            String scoreText = "Score: " + score;
+            float textWidth = paint.measureText(scoreText);
+            float xPosition = (screenWidth - textWidth) / 2;
+            float yPosition = 150;
+
+            canvas.drawText(scoreText, xPosition, yPosition, paint);
+
         }
     }
 
@@ -172,20 +218,28 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     }
 
     public void update() {
-        // Gère l'animation
+
+        if (gameOver) return;
         frameCounter++;
         if (frameCounter >= FRAME_DELAY) {
             currentFrameIndex = (currentFrameIndex + 1) % 2;
             frameCounter = 0;
         }
-        // Générer des obstacles aléatoires
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastScoreUpdateTime >= 2000) {
+            score++;
+            lastScoreUpdateTime = currentTime;
+        }
+
         if (random.nextInt(100) < 5) {
             int height = 440 + random.nextInt(201); // Height between 440 and 640
             int y = random.nextBoolean() ? 0 : (screenHeight - height);
-            if (lastObstacle1 != null && lastObstacle2 != null && lastObstacle1.y == lastObstacle2.y) {
+
+          if (lastObstacle1 != null && lastObstacle2 != null && lastObstacle1.y == lastObstacle2.y) {
                 y = lastObstacle1.y == 0 ? (screenHeight - height) : 0;
             }
-            int minDistance = 200; // Minimum distance between obstacles
+            int minDistance = 200;
 
             if (obstacles.isEmpty() || (screenWidth - obstacles.get(obstacles.size() - 1).x) > minDistance) {
                 Obstacle newObstacle = new Obstacle(screenWidth, y, 100, height, y == 0 ? stalactiteBitmapTop : stalactiteBitmapBottom);
@@ -195,7 +249,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             }
         }
 
-        // Déplacer les obstacles et vérifier collision
         Iterator<Obstacle> iterator = obstacles.iterator();
         while (iterator.hasNext()) {
             Obstacle obstacle = iterator.next();
@@ -207,11 +260,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
             if (batX + 50 > obstacle.x && batX - 50 < obstacle.x + obstacle.width &&
                     batY + 50 > obstacle.y && batY - 50 < obstacle.y + obstacle.height) {
-                // Game over
-                System.exit(0);
+                gameOver = true;
+                if (gameOverListener != null) gameOverListener.onGameOver(score);
             }
         }
-        long currentTime = System.currentTimeMillis();
         if (currentTime - lastUpdateTime > 50) {
             sonarRadius1 += 10;
             sonarRadius2 += 10;
@@ -267,5 +319,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 break;
         }
         return true;
+    }
+
+    public void resetGame() {
+        score = 0;
+        gameOver = false;
+        obstacles.clear();
+        sonarRadius1 = 0;
+        sonarRadius2 = 200;
+        batX = screenWidth/2f;
+        batY = screenHeight/2f;
     }
 }
