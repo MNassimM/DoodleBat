@@ -153,9 +153,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
             }
 
-            backgroundX -= backgroundSpeed;
-            if (backgroundX <= -screenWidth) {
-                backgroundX = 0;
+            if (!gameOver) {
+                backgroundX -= backgroundSpeed;
+                if (backgroundX <= -screenWidth) {
+                    backgroundX = 0;
+                }
             }
 
             Paint paint = new Paint();
@@ -201,16 +203,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
         for (Obstacle obstacle : obstacles) {
             if (isObstacleTouchedByWave(obstacle, sonarRadius1) || isObstacleTouchedByWave(obstacle, sonarRadius2)) {
-                canvas.drawBitmap(obstacle.bitmap, obstacle.x, obstacle.y, paint);
+                canvas.drawBitmap(obstacle.bitmap, obstacle.x-50, obstacle.y, paint);
             }
 
             // Draw hitbox for debugging
-            /*
+
             paint.setColor(Color.RED);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(3);
             canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
-            */
+
         }
     }
 
@@ -329,6 +331,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        if (gameOver) return;
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             batX -= event.values[0] * 5;
             if (batX < 0) batX = 0;
@@ -355,6 +358,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (gameOver) return true;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 lastTouchY = event.getY();
