@@ -40,6 +40,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private Bitmap[] batFrames = new Bitmap[2];
     private int currentFrameIndex = 0;
     private int frameCounter = 0;
+    private static final int FRAME_DELAY = 10; // Ajustez pour la vitesse
+    private Bitmap background, darkBackground, stalactiteBitmapTop, stalactiteBitmapBottom, scaledBackground;
+    private float backgroundX = 0; // Position X pour le défilement
+    private int backgroundSpeed = 5; // Vitesse de défilement
+
+    private Obstacle lastObstacle1 = null;
+    private Obstacle lastObstacle2 = null;
     private static final int FRAME_DELAY = 10;
     private Bitmap background, scaledBackground;
     private float backgroundX = 0;
@@ -74,7 +81,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         batFrames[1] = Bitmap.createScaledBitmap(original2, desiredWidth, desiredHeight, true);
 
         background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
-
+        Bitmap stalactiteOriginal = BitmapFactory.decodeResource(getResources(), R.drawable.stalactite);
+        stalactiteBitmapTop = Bitmap.createScaledBitmap(stalactiteOriginal, 100, 800, true);
+        stalactiteBitmapBottom = Bitmap.createScaledBitmap(stalactiteBitmapTop, stalactiteBitmapTop.getWidth(), -stalactiteBitmapTop.getHeight(), true);
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -135,13 +144,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
             }
             if (isDark) {
-                Paint darkPaint = new Paint();
-                ColorMatrix colorMatrix = new ColorMatrix();
-                colorMatrix.setScale(0.5f, 0.5f, 0.5f, 1.0f); // Reduce brightness by 50%
-                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
-                darkPaint.setColorFilter(filter);
-                canvas.drawBitmap(scaledBackground, backgroundX, 0, darkPaint);
-                canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, darkPaint);
+                canvas.drawBitmap(darkBackground, backgroundX, 0, null);
+                canvas.drawBitmap(darkBackground, backgroundX + screenWidth, 0, null);
             } else {
                 canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
                 canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
@@ -151,8 +155,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             if (backgroundX <= -screenWidth) {
                 backgroundX = 0;
             }
-            Paint paint = new Paint();
 
+            Paint paint = new Paint();
             Bitmap currentBitmap = batFrames[currentFrameIndex];
             if (currentBitmap != null) {
                 canvas.drawBitmap(
@@ -165,11 +169,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
             if (isDark) {
                 drawSonarWaves(canvas, paint);
-            } else {
-                paint.setColor(Color.RED);
-                for (Obstacle obstacle : obstacles) {
-                    canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
-                }
             }
 
             paint.setColor(Color.WHITE);
@@ -195,19 +194,27 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         canvas.drawCircle(batX, batY, sonarRadius1, paint);
         canvas.drawCircle(batX, batY, sonarRadius2, paint);
 
-        paint.setColor(Color.RED);
         for (Obstacle obstacle : obstacles) {
             if (isObstacleTouchedByWave(obstacle, sonarRadius1) || isObstacleTouchedByWave(obstacle, sonarRadius2)) {
-                canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
+                canvas.drawBitmap(obstacle.bitmap, obstacle.x, obstacle.y, paint);
             }
+
+            // Draw hitbox for debugging
+            /*
+            paint.setColor(Color.RED);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3);
+            canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
+            */
         }
     }
 
     private boolean isObstacleTouchedByWave(Obstacle obstacle, float sonarRadius) {
-        return Math.hypot(obstacle.x - batX, obstacle.y - batY) <= sonarRadius ||
-                Math.hypot(obstacle.x + obstacle.width - batX, obstacle.y - batY) <= sonarRadius ||
-                Math.hypot(obstacle.x - batX, obstacle.y + obstacle.height - batY) <= sonarRadius ||
-                Math.hypot(obstacle.x + obstacle.width - batX, obstacle.y + obstacle.height - batY) <= sonarRadius;
+        float closestX = Math.max(obstacle.x, Math.min(batX, obstacle.x + obstacle.width));
+        float closestY = Math.max(obstacle.y, Math.min(batY, obstacle.y + obstacle.height));
+        float distanceX = batX - closestX;
+        float distanceY = batY - closestY;
+        return (distanceX * distanceX + distanceY * distanceY) <= (sonarRadius * sonarRadius);
     }
 
     public void update() {
@@ -226,12 +233,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         }
 
         if (random.nextInt(100) < 5) {
-            int height = random.nextInt(500) + 200;
+            int height = 440 + random.nextInt(201); // Height between 440 and 640
             int y = random.nextBoolean() ? 0 : (screenHeight - height);
+
+          if (lastObstacle1 != null && lastObstacle2 != null && lastObstacle1.y == lastObstacle2.y) {
+                y = lastObstacle1.y == 0 ? (screenHeight - height) : 0;
+            }
             int minDistance = 200;
 
             if (obstacles.isEmpty() || (screenWidth - obstacles.get(obstacles.size() - 1).x) > minDistance) {
-                obstacles.add(new Obstacle(screenWidth, y, 50, height));
+                Obstacle newObstacle = new Obstacle(screenWidth, y, 100, height, y == 0 ? stalactiteBitmapTop : stalactiteBitmapBottom);
+                obstacles.add(newObstacle);
+                lastObstacle2 = lastObstacle1;
+                lastObstacle1 = newObstacle;
             }
         }
 
@@ -271,7 +285,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             if (batX < 0) batX = 0;
             if (batX > screenWidth) batX = screenWidth;
         } else if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
+            boolean wasDark = isDark;
             isDark = event.values[0] < 5;
+            if (isDark && !wasDark) {
+                // Create a pre-filtered dark background
+                darkBackground = Bitmap.createBitmap(scaledBackground.getWidth(), scaledBackground.getHeight(), scaledBackground.getConfig());
+                Canvas canvas = new Canvas(darkBackground);
+                Paint darkPaint = new Paint();
+                ColorMatrix colorMatrix = new ColorMatrix();
+                colorMatrix.setScale(0.5f, 0.5f, 0.5f, 1.0f); // Reduce brightness by 50%
+                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+                darkPaint.setColorFilter(filter);
+                canvas.drawBitmap(scaledBackground, 0, 0, darkPaint);
+            }
         }
     }
 
