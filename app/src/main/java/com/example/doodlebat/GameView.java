@@ -232,12 +232,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             }
 
             // Draw hitbox for debugging
-
+/*
             paint.setColor(Color.RED);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(3);
             canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
-
+*/
         }
     }
 
@@ -297,7 +297,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
           if (lastObstacle1 != null && lastObstacle2 != null && lastObstacle1.y == lastObstacle2.y) {
                 y = lastObstacle1.y == 0 ? (screenHeight - height) : 0;
             }
-            int minDistance = 200;
+            int minDistance = 250;
 
             if (obstacles.isEmpty() || (screenWidth - obstacles.get(obstacles.size() - 1).x) > minDistance) {
                 Obstacle newObstacle = new Obstacle(screenWidth, y, 100, height, y == 0 ? stalactiteBitmapTop : stalactiteBitmapBottom);
@@ -316,8 +316,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 iterator.remove();
             }
 
-            if (batX + 50 > obstacle.x && batX - 50 < obstacle.x + obstacle.width &&
-                    batY + 50 > obstacle.y && batY - 50 < obstacle.y + obstacle.height && !isInvincible) {
+            if (batX + desiredWidth/2 > obstacle.x && batX - desiredWidth/2 < obstacle.x + obstacle.width &&
+                    batY + desiredHeight/2 > obstacle.y && batY - desiredHeight/2 < obstacle.y + obstacle.height && !isInvincible) {
                 lives--;
                 if (lives <= 0) {
                     gameOver = true;
