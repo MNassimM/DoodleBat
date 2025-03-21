@@ -39,6 +39,14 @@
             android:padding="10dp"/>
 
         <Button
+            android:id="@+id/saveScoreButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enregistrer_score"
+            android:layout_marginTop="10dp"
+            android:padding="10dp"/>
+
+        <Button
             android:id="@+id/mainMenuButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

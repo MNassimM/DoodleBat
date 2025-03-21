@@ -58,8 +58,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private boolean gameOver = false;
     private GameOverListener gameOverListener;
 
-    private int score=0;
-
     public interface GameOverListener {
         void onGameOver(int finalscore);
     }

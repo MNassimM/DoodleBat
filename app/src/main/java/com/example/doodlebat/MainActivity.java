@@ -20,6 +20,10 @@ public class MainActivity extends Activity {
                 startActivity(intent);
             }
         });
+        Button viewScoresButton = findViewById(R.id.viewScoresButton);
+        viewScoresButton.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, ScoreboardActivity.class));
+        });
     }
     @Override
     protected void onDestroy() {

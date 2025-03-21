@@ -4,4 +4,7 @@
     <string name="rejouer">Rejouer</string>
     <string name="score_0">Score: 0</string>
     <string name="menu_principal">Menu principal</string>
+    <string name="tableau_des_scores">Tableau des Scores</string>
+    <string name="retour">Retour</string>
+    <string name="enregistrer_score">Enregistrer Score</string>
 </resources>

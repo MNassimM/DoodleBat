@@ -21,6 +21,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".GameActivity"/>
+        <activity android:name=".ScoreboardActivity"
+            android:label="Tableau des Scores"/>
 
     </application>
 
