@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -54,6 +55,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private ArrayList<Coin> coins;
     private long lastCoinSpawnTime = System.currentTimeMillis();
     private Bitmap coinImage;
+    private int lives = 3;
+    private Bitmap heartImage;
+    private boolean isInvincible = false;
+    private long invincibilityStartTime;
+    private static final long INVINCIBILITY_DURATION = 3000; // 3 secondes
 
 
 
@@ -73,9 +79,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
         Bitmap original1 = BitmapFactory.decodeResource(getResources(), R.drawable.bat_frame_1);
         Bitmap original2 = BitmapFactory.decodeResource(getResources(), R.drawable.bat_frame_2);
+        heartImage = BitmapFactory.decodeResource(getResources(), R.drawable.heart);
 
         batFrames[0] = Bitmap.createScaledBitmap(original1, desiredWidth, desiredHeight, true);
         batFrames[1] = Bitmap.createScaledBitmap(original2, desiredWidth, desiredHeight, true);
+        heartImage = Bitmap.createScaledBitmap(heartImage, 60, 60, true);
 
         background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
         coinImage = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
@@ -175,7 +183,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
             paint.setColor(Color.WHITE);
 
-            paint.setTextSize(100);
+            paint.setTextSize(65);
             paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
             String scoreText = "Score: " + score;
@@ -187,6 +195,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
             for (Coin coin : coins) {
                 canvas.drawBitmap(coinImage, coin.x - coin.radius, coin.y - coin.radius, null);
+            }
+
+            for (int i = 0; i < lives; i++) {
+                canvas.drawBitmap(heartImage, screenWidth - (i + 1) * 65, 20, null);
+            }
+
+            if (!isInvincible || (System.currentTimeMillis() / 200) % 2 == 0) {
+                canvas.drawBitmap(
+                        batFrames[currentFrameIndex],
+                        batX - (float) batFrames[currentFrameIndex].getWidth() / 2,
+                        batY - (float) batFrames[currentFrameIndex].getHeight() / 2,
+                        null
+                );
             }
         }
     }
@@ -290,9 +311,22 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             }
 
             if (batX + 50 > obstacle.x && batX - 50 < obstacle.x + obstacle.width &&
-                    batY + 50 > obstacle.y && batY - 50 < obstacle.y + obstacle.height) {
-                gameOver = true;
-                if (gameOverListener != null) gameOverListener.onGameOver(score);
+                    batY + 50 > obstacle.y && batY - 50 < obstacle.y + obstacle.height && !isInvincible) {
+                lives--;
+                if (lives <= 0) {
+                    gameOver = true;
+                    if (gameOverListener != null) gameOverListener.onGameOver(score);
+                } else {
+                    isInvincible = true;
+                    invincibilityStartTime = System.currentTimeMillis();
+                }
+            }
+        }
+
+        if (isInvincible) {
+            long currentTime2 = System.currentTimeMillis();
+            if (currentTime2 - invincibilityStartTime >= INVINCIBILITY_DURATION) {
+                isInvincible = false;
             }
         }
         if (currentTime - lastUpdateTime > 50) {
@@ -378,5 +412,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         sonarRadius2 = 200;
         batX = screenWidth/2f;
         batY = screenHeight/2f;
+        lives = 3; // Réinitialise les vies
+        isInvincible = false; // Réinitialise l'invincibilité
     }
 }
