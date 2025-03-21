@@ -41,7 +41,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private int currentFrameIndex = 0;
     private int frameCounter = 0;
     private static final int FRAME_DELAY = 10; // Ajustez pour la vitesse
-    private Bitmap background, darkBackground, stalactiteBitmapTop, stalactiteBitmapBottom, scaledBackground;
+    private Bitmap background, darkBackground, stalactiteBitmapTop, stalactiteBitmapBottom;
     private float backgroundX = 0; // Position X pour le défilement
     private int backgroundSpeed = 5; // Vitesse de défilement
 
@@ -60,6 +60,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public interface GameOverListener {
         void onGameOver(int finalscore);
     }
+
+    private Bitmap scaledBackground = null;
 
     public void setGameOverListener(GameOverListener listener) {
         this.gameOverListener = listener;
@@ -80,6 +82,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
         coinImage = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
 
+        if (background == null) {
+            throw new RuntimeException("Background image not found!");
+        }
         Bitmap stalactiteOriginal = BitmapFactory.decodeResource(getResources(), R.drawable.stalactite);
         stalactiteBitmapTop = Bitmap.createScaledBitmap(stalactiteOriginal, 100, 800, true);
         stalactiteBitmapBottom = Bitmap.createScaledBitmap(stalactiteBitmapTop, stalactiteBitmapTop.getWidth(), -stalactiteBitmapTop.getHeight(), true);
@@ -110,6 +115,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         screenWidth = getWidth();
         screenHeight = getHeight();
         scaledBackground = Bitmap.createScaledBitmap(background, screenWidth, screenHeight, true);
+        batX = screenWidth / 2f;
+        batY = screenHeight / 2f;
     }
 
     @Override
@@ -133,9 +140,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
-            canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
-            canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
-
             Paint scorePaint = new Paint();
             scorePaint.setColor(Color.WHITE);
             scorePaint.setTextSize(50);
@@ -158,7 +162,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 backgroundX = 0;
             }
 
-            Paint paint = new Paint();
             Bitmap currentBitmap = batFrames[currentFrameIndex];
             if (currentBitmap != null) {
                 canvas.drawBitmap(
@@ -168,6 +171,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                         null
                 );
             }
+            Paint paint = new Paint();
 
             if (isDark) {
                 drawSonarWaves(canvas, paint);
@@ -337,15 +341,21 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             boolean wasDark = isDark;
             isDark = event.values[0] < 5;
             if (isDark && !wasDark) {
-                // Create a pre-filtered dark background
-                darkBackground = Bitmap.createBitmap(scaledBackground.getWidth(), scaledBackground.getHeight(), scaledBackground.getConfig());
-                Canvas canvas = new Canvas(darkBackground);
-                Paint darkPaint = new Paint();
-                ColorMatrix colorMatrix = new ColorMatrix();
-                colorMatrix.setScale(0.5f, 0.5f, 0.5f, 1.0f); // Reduce brightness by 50%
-                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
-                darkPaint.setColorFilter(filter);
-                canvas.drawBitmap(scaledBackground, 0, 0, darkPaint);
+                // Vérifier si scaledBackground est initialisé
+                if (scaledBackground != null) {
+                    darkBackground = Bitmap.createBitmap(
+                            scaledBackground.getWidth(),
+                            scaledBackground.getHeight(),
+                            scaledBackground.getConfig()
+                    );
+                    Canvas canvas = new Canvas(darkBackground);
+                    Paint darkPaint = new Paint();
+                    ColorMatrix colorMatrix = new ColorMatrix();
+                    colorMatrix.setScale(0.5f, 0.5f, 0.5f, 1.0f);
+                    ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+                    darkPaint.setColorFilter(filter);
+                    canvas.drawBitmap(scaledBackground, 0, 0, darkPaint);
+                }
             }
         }
     }
