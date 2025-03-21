@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/gameOverLayout"
+    android:id="@+id/pauseMenuLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:visibility="gone"
@@ -18,67 +18,38 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/game_over"
+            android:text="Pause"
             android:textSize="30sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"/>
-
-        <TextView
-            android:id="@+id/scoreText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/score_0"
-            android:textSize="24sp"
-            android:layout_marginTop="10dp"
-            android:textColor="#FFFFFF"/>
-
-        <EditText
-            android:id="@+id/pseudoInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Entrez votre pseudo"
-            android:inputType="text"
-            android:layout_marginTop="20dp"
-            android:padding="10dp"
-            android:textColor="#FFFFFF"/>
-
-        <Button
-            android:id="@+id/saveScoreButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/enregistrer_score"
-            android:layout_marginTop="20dp"
-            android:padding="10dp"
-            android:background="@drawable/button_save_score_background"
-            android:textColor="#FFFFFF"/>
+            android:textColor="#FFFFFF" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="20dp">
 
             <Button
-                android:id="@+id/restartButton"
+                android:id="@+id/resumeButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/rejouer"
+                android:text="Reprendre"
                 android:padding="10dp"
-                android:background="@drawable/button_red_background"
+                android:background="@drawable/button_green_background"
                 android:textColor="#FFFFFF"
-                android:layout_marginEnd="5dp"/>
+                android:layout_marginEnd="5dp" />
 
             <Button
-                android:id="@+id/mainMenuButton"
+                android:id="@+id/quitButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/menu_principal"
+                android:text="Quitter"
                 android:padding="10dp"
                 android:background="@drawable/button_red_background"
                 android:textColor="#FFFFFF"
-                android:layout_marginStart="5dp"/>
+                android:layout_marginStart="5dp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -87,6 +58,6 @@
         android:layout_height="wrap_content"
         android:src="@drawable/bat_icon"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="170dp"/>
+        android:layout_marginTop="200dp" />
 
 </RelativeLayout>

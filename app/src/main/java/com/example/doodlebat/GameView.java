@@ -13,7 +13,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -41,10 +40,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private Bitmap[] batFrames = new Bitmap[2];
     private int currentFrameIndex = 0;
     private int frameCounter = 0;
-    private static final int FRAME_DELAY = 10; // Ajustez pour la vitesse
+    private static final int FRAME_DELAY = 10;
     private Bitmap background, darkBackground, stalactiteBitmapTop, stalactiteBitmapBottom;
-    private float backgroundX = 0; // Position X pour le défilement
-    private int backgroundSpeed = 5; // Vitesse de défilement
+    private float backgroundX = 0;
+    private int backgroundSpeed = 5;
 
     private Obstacle lastObstacle1 = null;
     private Obstacle lastObstacle2 = null;
@@ -59,7 +58,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private Bitmap heartImage;
     private boolean isInvincible = false;
     private long invincibilityStartTime;
-    private static final long INVINCIBILITY_DURATION = 3000; // 3 secondes
+    private static final long INVINCIBILITY_DURATION = 2000;
+    private boolean isPaused = false;
+
 
 
 
@@ -165,22 +166,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
             }
 
-            if (!gameOver) {
+            if (!gameOver && !isPaused) {
                 backgroundX -= backgroundSpeed;
                 if (backgroundX <= -screenWidth) {
                     backgroundX = 0;
                 }
             }
 
-            Bitmap currentBitmap = batFrames[currentFrameIndex];
-            if (currentBitmap != null) {
-                canvas.drawBitmap(
-                        currentBitmap,
-                        batX - (float) currentBitmap.getWidth() / 2,
-                        batY - (float) currentBitmap.getHeight() / 2,
-                        null
-                );
-            }
             Paint paint = new Paint();
 
             if (isDark) {
@@ -277,7 +269,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     public void update() {
 
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         frameCounter++;
         if (frameCounter >= FRAME_DELAY) {
             currentFrameIndex = (currentFrameIndex + 1) % 2;
@@ -291,7 +283,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         }
 
         if (random.nextInt(100) < 5) {
-            int height = 440 + random.nextInt(201); // Height between 440 and 640
+            int height = 440 + random.nextInt(201);
             int y = random.nextBoolean() ? 0 : (screenHeight - height);
 
           if (lastObstacle1 != null && lastObstacle2 != null && lastObstacle1.y == lastObstacle2.y) {
@@ -369,7 +361,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             batX -= event.values[0] * 5;
             if (batX < 0) batX = 0;
@@ -378,7 +370,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             boolean wasDark = isDark;
             isDark = event.values[0] < 5;
             if (isDark && !wasDark) {
-                // Vérifier si scaledBackground est initialisé
                 if (scaledBackground != null) {
                     darkBackground = Bitmap.createBitmap(
                             scaledBackground.getWidth(),
@@ -402,7 +393,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (gameOver) return true;
+        if (gameOver || isPaused) return true;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 lastTouchY = event.getY();
@@ -436,5 +427,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             gameOverListener.onGameOver(score);
             // Déclencher la musique game over via GameActivity
         }
+        lives = 3;
+        isInvincible = false;
+    }
+
+    public void pauseGame() {
+        isPaused = true;
+    }
+
+    public void resumeGame() {
+        isPaused = false;
     }
 }
