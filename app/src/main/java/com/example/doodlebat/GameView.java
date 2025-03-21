@@ -428,5 +428,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         batY = screenHeight/2f;
         lives = 3; // Réinitialise les vies
         isInvincible = false; // Réinitialise l'invincibilité
+        coins.clear(); // Réinitialise les coins
+    }
+
+    public void gameOver() {
+        if(gameOverListener != null) {
+            gameOverListener.onGameOver(score);
+            // Déclencher la musique game over via GameActivity
+        }
     }
 }
