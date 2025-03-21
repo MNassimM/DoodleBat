@@ -25,6 +25,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private float lastTouchY;
     private ArrayList<Obstacle> obstacles;
     private Random random;
+    private float sonarRadius1 = 0;
+    private float sonarRadius2 = 200;
+    private long lastUpdateTime = System.currentTimeMillis();
 
     public GameView(Context context) {
         super(context);
@@ -80,27 +83,57 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             paint.setColor(Color.GRAY);
             canvas.drawCircle(batX, batY, 50, paint);
 
-            // Dessiner les obstacles
-            paint.setColor(Color.RED);
-            for (Obstacle obstacle : obstacles) {
+            if (isDark) {
+                drawSonarWaves(canvas, paint);
+            } else {
+                paint.setColor(Color.RED);
+                for (Obstacle obstacle : obstacles) {
+                    canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
+                }
+            }
+        }
+    }
+
+
+    private void drawSonarWaves(Canvas canvas, Paint paint) {
+        paint.setColor(Color.WHITE);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
+        canvas.drawCircle(batX, batY, sonarRadius1, paint);
+        canvas.drawCircle(batX, batY, sonarRadius2, paint);
+
+        paint.setColor(Color.RED);
+        for (Obstacle obstacle : obstacles) {
+            if (isObstacleTouchedByWave(obstacle, sonarRadius1) || isObstacleTouchedByWave(obstacle, sonarRadius2)) {
                 canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
             }
         }
     }
 
+    private boolean isObstacleTouchedByWave(Obstacle obstacle, float sonarRadius) {
+        return Math.hypot(obstacle.x - batX, obstacle.y - batY) <= sonarRadius ||
+                Math.hypot(obstacle.x + obstacle.width - batX, obstacle.y - batY) <= sonarRadius ||
+                Math.hypot(obstacle.x - batX, obstacle.y + obstacle.height - batY) <= sonarRadius ||
+                Math.hypot(obstacle.x + obstacle.width - batX, obstacle.y + obstacle.height - batY) <= sonarRadius;
+    }
+
     public void update() {
         // Générer des obstacles aléatoires
         if (random.nextInt(100) < 5) {
-            int height = random.nextInt(200) + 100;
+            int height = random.nextInt(500) + 200;
             int y = random.nextBoolean() ? 0 : (screenHeight - height);
-            obstacles.add(new Obstacle(screenWidth, y, 50, height));
+            int minDistance = 200; // Minimum distance between obstacles
+
+            if (obstacles.isEmpty() || (screenWidth - obstacles.get(obstacles.size() - 1).x) > minDistance) {
+                obstacles.add(new Obstacle(screenWidth, y, 50, height));
+            }
         }
 
         // Déplacer les obstacles et vérifier collision
         Iterator<Obstacle> iterator = obstacles.iterator();
         while (iterator.hasNext()) {
             Obstacle obstacle = iterator.next();
-            obstacle.x -= 10;
+            obstacle.x -= 5;
 
             if (obstacle.x + obstacle.width < 0) {
                 iterator.remove();
@@ -111,6 +144,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 // Game over
                 System.exit(0);
             }
+        }
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUpdateTime > 50) {
+            sonarRadius1 += 25;
+            sonarRadius2 += 25;
+            lastUpdateTime = currentTime;
+        }
+
+        if (sonarRadius1 > screenWidth/2) {
+            sonarRadius1 = 0;
+        }
+        if (sonarRadius2 > screenWidth/2) {
+            sonarRadius2 = 0;
         }
     }
 
