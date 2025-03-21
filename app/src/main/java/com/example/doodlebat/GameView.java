@@ -1,6 +1,8 @@
 package com.example.doodlebat;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -20,11 +22,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private boolean isDark = false;
     private int screenWidth, screenHeight;
     private float lastTouchY;
+    private Bitmap background, scaledBackground;
+    private float backgroundX = 0; // Position X pour le défilement
+    private int backgroundSpeed = 5; // Vitesse de défilement
+
+    private Paint paint = new Paint();
 
     public GameView(Context context) {
         super(context);
         getHolder().addCallback(this);
         setFocusable(true);
+
+        background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
+
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -44,6 +54,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         thread.start();
         screenWidth = getWidth();
         screenHeight = getHeight();
+        scaledBackground = Bitmap.createScaledBitmap(background, screenWidth, screenHeight, true);
     }
 
     @Override
@@ -67,7 +78,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
-            canvas.drawColor(isDark ? Color.BLACK : Color.WHITE);
+           // canvas.drawColor(isDark ? Color.BLACK : Color.WHITE);
+            canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
+            canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+
+// Défilement
+            backgroundX -= backgroundSpeed;
+            if (backgroundX <= -screenWidth) {
+                backgroundX = 0; // Répète le cycle
+            }
             Paint paint = new Paint();
             paint.setColor(Color.GRAY);
             canvas.drawCircle(batX, batY, 50, paint);
