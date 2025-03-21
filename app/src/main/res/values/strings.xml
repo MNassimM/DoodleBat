@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">DoodleBat</string>
+    <string name="game_over">GAME OVER</string>
+    <string name="rejouer">Rejouer</string>
+    <string name="score_0">Score: 0</string>
+    <string name="menu_principal">Menu principal</string>
 </resources>
