@@ -24,6 +24,7 @@ public class MainActivity extends Activity {
         viewScoresButton.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, ScoreboardActivity.class));
         });
+
     }
     @Override
     protected void onDestroy() {
