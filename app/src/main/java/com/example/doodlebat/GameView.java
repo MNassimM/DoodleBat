@@ -361,7 +361,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             batX -= event.values[0] * 5;
             if (batX < 0) batX = 0;
@@ -393,7 +393,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (gameOver) return true;
+        if (gameOver || isPaused) return true;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 lastTouchY = event.getY();
