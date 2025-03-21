@@ -194,8 +194,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         }
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastUpdateTime > 50) {
-            sonarRadius1 += 25;
-            sonarRadius2 += 25;
+            sonarRadius1 += 10;
+            sonarRadius2 += 10;
             lastUpdateTime = currentTime;
         }
 
