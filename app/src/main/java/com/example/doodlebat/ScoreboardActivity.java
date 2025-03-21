@@ -55,7 +55,7 @@ public class ScoreboardActivity extends Activity {
 
         ArrayAdapter<ScoreEntry> adapter = new ArrayAdapter<ScoreEntry>(
                 this,
-                R.layout.score_item, // Layout personnalisé
+                R.layout.score_item,
                 scoreEntries
         ) {
             @Override

@@ -22,7 +22,7 @@ import java.util.Set;
 public class GameActivity extends Activity {
     private GameView gameView;
     private RelativeLayout gameOverLayout;
-    private RelativeLayout pauseMenuLayout; // Le layout de pause
+    private RelativeLayout pauseMenuLayout;
     private TextView scoreText;
     private EditText pseudoInput;
     private int tempScore;
