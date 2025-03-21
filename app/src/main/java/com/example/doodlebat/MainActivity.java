@@ -21,4 +21,12 @@ public class MainActivity extends Activity {
             }
         });
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Empêche l'accumulation d'activités
+        if (isFinishing()) {
+            Runtime.getRuntime().gc();
+        }
+    }
 }

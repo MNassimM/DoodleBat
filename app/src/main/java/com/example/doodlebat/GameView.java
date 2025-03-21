@@ -7,6 +7,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -44,6 +46,20 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private int backgroundSpeed = 5;
     private int score = 0;
     private long lastScoreUpdateTime = System.currentTimeMillis();
+
+
+    private boolean gameOver = false;
+    private GameOverListener gameOverListener;
+
+    private int score=0;
+
+    public interface GameOverListener {
+        void onGameOver(int finalscore);
+    }
+
+    public void setGameOverListener(GameOverListener listener) {
+        this.gameOverListener = listener;
+    }
 
 
     public GameView(Context context) {
@@ -107,6 +123,29 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         if (canvas != null) {
             canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
             canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+
+            Paint scorePaint = new Paint();
+            scorePaint.setColor(Color.WHITE);
+            scorePaint.setTextSize(50);
+            canvas.drawText("Score: " + score, 20, 50, scorePaint);
+            if (gameOver) {
+                // Dessinez un calque semi-transparent
+                Paint overlayPaint = new Paint();
+                overlayPaint.setColor(Color.argb(150, 0, 0, 0));
+                canvas.drawRect(0, 0, screenWidth, screenHeight, overlayPaint);
+            }
+            if (isDark) {
+                Paint darkPaint = new Paint();
+                ColorMatrix colorMatrix = new ColorMatrix();
+                colorMatrix.setScale(0.5f, 0.5f, 0.5f, 1.0f); // Reduce brightness by 50%
+                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+                darkPaint.setColorFilter(filter);
+                canvas.drawBitmap(scaledBackground, backgroundX, 0, darkPaint);
+                canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, darkPaint);
+            } else {
+                canvas.drawBitmap(scaledBackground, backgroundX, 0, null);
+                canvas.drawBitmap(scaledBackground, backgroundX + screenWidth, 0, null);
+            }
 
             backgroundX -= backgroundSpeed;
             if (backgroundX <= -screenWidth) {
@@ -172,6 +211,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     }
 
     public void update() {
+
+        if (gameOver) return;
         frameCounter++;
         if (frameCounter >= FRAME_DELAY) {
             currentFrameIndex = (currentFrameIndex + 1) % 2;
@@ -205,12 +246,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
             if (batX + 50 > obstacle.x && batX - 50 < obstacle.x + obstacle.width &&
                     batY + 50 > obstacle.y && batY - 50 < obstacle.y + obstacle.height) {
-                System.exit(0);
+                gameOver = true;
+                if (gameOverListener != null) gameOverListener.onGameOver(score);
             }
         }
         if (currentTime - lastUpdateTime > 50) {
-            sonarRadius1 += 25;
-            sonarRadius2 += 25;
+            sonarRadius1 += 10;
+            sonarRadius2 += 10;
             lastUpdateTime = currentTime;
         }
 
@@ -251,5 +293,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
                 break;
         }
         return true;
+    }
+
+    public void resetGame() {
+        score = 0;
+        gameOver = false;
+        obstacles.clear();
+        sonarRadius1 = 0;
+        sonarRadius2 = 200;
+        batX = screenWidth/2f;
+        batY = screenHeight/2f;
     }
 }
