@@ -18,6 +18,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private Sensor accelerometer, proximitySensor, lightSensor;
     private float batX = 400, batY = 600;
     private boolean isDark = false;
+    private int screenWidth, screenHeight;
+    private float lastTouchY;
 
     public GameView(Context context) {
         super(context);
@@ -40,6 +42,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void surfaceCreated(SurfaceHolder holder) {
         thread.setRunning(true);
         thread.start();
+        screenWidth = getWidth();
+        screenHeight = getHeight();
     }
 
     @Override
@@ -76,6 +80,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             batX -= event.values[0] * 5;
+            if (batX < 0) batX = 0;
+            if (batX > screenWidth) batX = screenWidth;
         } else if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
             isDark = event.values[0] < 5;
         }
@@ -86,8 +92,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            batY = event.getY();
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                lastTouchY = event.getY();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float deltaY = event.getY() - lastTouchY;
+                batY += deltaY;
+                lastTouchY = event.getY();
+                if (batY < 0) batY = 0;
+                if (batY > screenHeight) batY = screenHeight;
+                break;
         }
         return true;
     }
