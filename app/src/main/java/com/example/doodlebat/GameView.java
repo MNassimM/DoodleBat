@@ -11,6 +11,9 @@ import android.hardware.SensorManager;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener {
     private GameThread thread;
@@ -20,6 +23,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private boolean isDark = false;
     private int screenWidth, screenHeight;
     private float lastTouchY;
+    private ArrayList<Obstacle> obstacles;
+    private Random random;
 
     public GameView(Context context) {
         super(context);
@@ -36,6 +41,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         thread = new GameThread(getHolder(), this);
+
+        obstacles = new ArrayList<>();
+        random = new Random();
     }
 
     @Override
@@ -71,10 +79,40 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             Paint paint = new Paint();
             paint.setColor(Color.GRAY);
             canvas.drawCircle(batX, batY, 50, paint);
+
+            // Dessiner les obstacles
+            paint.setColor(Color.RED);
+            for (Obstacle obstacle : obstacles) {
+                canvas.drawRect(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height, paint);
+            }
         }
     }
 
-    public void update() {}
+    public void update() {
+        // Générer des obstacles aléatoires
+        if (random.nextInt(100) < 5) {
+            int height = random.nextInt(200) + 100;
+            int y = random.nextBoolean() ? 0 : (screenHeight - height);
+            obstacles.add(new Obstacle(screenWidth, y, 50, height));
+        }
+
+        // Déplacer les obstacles et vérifier collision
+        Iterator<Obstacle> iterator = obstacles.iterator();
+        while (iterator.hasNext()) {
+            Obstacle obstacle = iterator.next();
+            obstacle.x -= 10;
+
+            if (obstacle.x + obstacle.width < 0) {
+                iterator.remove();
+            }
+
+            if (batX + 50 > obstacle.x && batX - 50 < obstacle.x + obstacle.width &&
+                    batY + 50 > obstacle.y && batY - 50 < obstacle.y + obstacle.height) {
+                // Game over
+                System.exit(0);
+            }
+        }
+    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
